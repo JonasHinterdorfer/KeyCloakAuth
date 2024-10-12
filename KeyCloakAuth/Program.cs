@@ -1,9 +1,6 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.Extensions.Options;
+using KeyCloakAuth.Swagger;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Startup.Swagger;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace KeyCloakAuth;
 
@@ -19,44 +16,22 @@ public class Program
 
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
-        builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+        builder.Services.AddSwaggerGenWithAuth(builder.Configuration);
 
-        // Add CORS services
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("AllowAll", builder =>
+        
+        builder.Services.AddAuthorization();
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
             {
-                builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            });
-        });
-
-        // Microsoft.AspNetCore.Authentication.OpenIdConnect
-        builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-            })
-            .AddCookie(options => { options.LoginPath = "/Account/Login"; })
-            .AddOpenIdConnect(options =>
-            {
-                options.Authority = "https://auth.registerplatform.ionas999.at/realms/master";
-                options.ClientId = "RegisterPlatformBackend";
-                options.ClientSecret = "fwHz5M4epcGWFJQOzFrRWEc9m2WsMgHA"; // get this from a secure place
-                options.ResponseType = "code";
-                options.SaveTokens = true;
-                options.Scope.Add("openid");
-                options.CallbackPath = "/login-callback"; // Update callback path
-                options.SignedOutCallbackPath = "/logout-callback"; // Update signout callback path
-                options.TokenValidationParameters = new TokenValidationParameters
+                options.RequireHttpsMetadata = false;
+                options.MetadataAddress = builder.Configuration["Authentication:MetadataAddress"]!;
+                options.Audience = builder.Configuration["Authentication:Audience"];
+                options.TokenValidationParameters = new TokenValidationParameters()
                 {
-                    NameClaimType = "preferred_username",
-                    RoleClaimType = "roles"
+                    ValidIssuer = builder.Configuration["Authentication:ValidIssuer"],
                 };
             });
-
+        
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
@@ -66,7 +41,6 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-        app.UseCors("AllowAll");
 
         // Ensure CORS middleware is added before authentication middleware
         app.UseAuthentication();
