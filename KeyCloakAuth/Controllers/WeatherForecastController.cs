@@ -23,6 +23,7 @@ public class WeatherForecastController : ControllerBase
     [HttpGet(Name = "GetWeatherForecast")]
     public IEnumerable<WeatherForecast> Get()
     {
+        User.Claims.ToList().ForEach(claim => Console.WriteLine($"Claim Type: {claim.Type} | Claim Value: {claim.Value}"));
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
