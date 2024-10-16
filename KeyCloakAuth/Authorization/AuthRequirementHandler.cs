@@ -8,30 +8,21 @@ public sealed class AuthRequirementHandler : AuthorizationHandler<AuthRequiremen
 {
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, AuthRequirement requirement)
     {
-
         try
         {
             var user = context.User.GetUserInformation();
             HandleUserRequirements(user, context, requirement);
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            var message = $"Error while handling {nameof(AuthRequirement)}: {e.Message}";
             context.Fail();
         }
         return Task.CompletedTask;
     }
-    
+
     private void HandleUserRequirements(User user, AuthorizationHandlerContext context, AuthRequirement requirement)
     {
-        var success = requirement.Roles switch
-        {
-            Roles.Admin when user.Roles.Contains(Roles.Admin) => true,
-            Roles.User when user.Roles.Contains(Roles.User) => true,
-            Roles.test when user.Roles.Contains(Roles.test) => true,
-            _ => false
-        };
-        if (success)
+        if (user.Roles.Contains(requirement.Role))
         {
             context.Succeed(requirement);
         }

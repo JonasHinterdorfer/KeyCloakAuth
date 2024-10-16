@@ -23,10 +23,10 @@ public class Program
         
         builder.Services.AddAuthorization(o =>
         {
-            o.AddPolicy(nameof(Roles.test), 
+            o.AddPolicy(nameof(Role.test), 
                 policy =>
                     policy.Requirements
-                        .Add(new AuthRequirement(Roles.Admin)));
+                        .Add(new AuthRequirement(Role.test)));
         });
         builder.Services.AddSingleton<IAuthorizationHandler, AuthRequirementHandler>();
 

@@ -20,7 +20,7 @@ public class WeatherForecastController : ControllerBase
         _logger = logger;
     }
 
-    [Authorize(Policy = nameof(Roles.test))]
+    [Authorize(Policy = nameof(Role.test))]
     [HttpGet(Name = "GetWeatherForecast")]
     public IEnumerable<WeatherForecast> Get()
     {

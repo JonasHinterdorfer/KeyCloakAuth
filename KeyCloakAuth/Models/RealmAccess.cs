@@ -17,17 +17,17 @@ namespace KeyCloakAuth.Models
             Roles = roles;
         }
 
-        public Roles[] GetRoles()
+        public Role[] GetRoles()
         {
             return Roles.Select(x =>
             {
-                bool isSuccess = Enum.TryParse<Roles>(x, out var role);
+                bool isSuccess = Enum.TryParse<Role>(x, out var role);
                 if (isSuccess)
                 {
-                    return OneOf<Roles, None>.FromT0(role);
+                    return OneOf<Role, None>.FromT0(role);
                 }
 
-                return OneOf<Roles, None>.FromT1(new None());
+                return OneOf<Role, None>.FromT1(new None());
             }).Where(x => x.IsT0).Select(x => x.AsT0).ToArray();
         }
     }

@@ -1,6 +1,6 @@
 namespace KeyCloakAuth.Authorization;
 
-public enum Roles
+public enum Role
 {
     Admin,
     User,
