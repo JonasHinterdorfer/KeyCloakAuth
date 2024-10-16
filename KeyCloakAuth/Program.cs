@@ -1,5 +1,7 @@
+using KeyCloakAuth.Authorization;
 using KeyCloakAuth.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 namespace KeyCloakAuth;
@@ -19,17 +21,23 @@ public class Program
         builder.Services.AddSwaggerGenWithAuth(builder.Configuration);
 
         
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorization(o =>
+        {
+            o.AddPolicy(nameof(Roles.test), 
+                policy =>
+                    policy.Requirements
+                        .Add(new AuthRequirement(Roles.Admin)));
+        });
+        builder.Services.AddSingleton<IAuthorizationHandler, AuthRequirementHandler>();
+
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
                 options.RequireHttpsMetadata = false;
                 options.MetadataAddress = builder.Configuration["Authentication:MetadataAddress"]!;
                 options.Audience = builder.Configuration["Authentication:Audience"];
-                options.TokenValidationParameters = new TokenValidationParameters()
-                {
-                    ValidIssuer = builder.Configuration["Authentication:ValidIssuer"],
-                };
+                options.TokenValidationParameters = new TokenValidationParameters();
+
             });
         
         var app = builder.Build();

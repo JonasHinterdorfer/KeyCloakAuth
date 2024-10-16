@@ -1,3 +1,4 @@
+using KeyCloakAuth.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,10 +20,11 @@ public class WeatherForecastController : ControllerBase
         _logger = logger;
     }
 
-    [Authorize]
+    [Authorize(Policy = nameof(Roles.test))]
     [HttpGet(Name = "GetWeatherForecast")]
     public IEnumerable<WeatherForecast> Get()
     {
+        User.Claims.ToList().ForEach(claim => Console.WriteLine($"Claim Type: {claim.Type} | Claim Value: {claim.Value}"));
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
