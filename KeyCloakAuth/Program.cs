@@ -1,6 +1,7 @@
 using KeyCloakAuth.Authorization;
 using KeyCloakAuth.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 namespace KeyCloakAuth;
@@ -22,12 +23,12 @@ public class Program
         
         builder.Services.AddAuthorization(o =>
         {
-            foreach (var role in Enum.GetValues<Roles>())
-            {
-                o.AddPolicy(role.ToString(), p => p.RequireAuthenticatedUser().RequireRole(role.ToString()));
-            }
-            
+            o.AddPolicy(nameof(Roles.test), 
+                policy =>
+                    policy.Requirements
+                        .Add(new AuthRequirement(Roles.Admin)));
         });
+        builder.Services.AddSingleton<IAuthorizationHandler, AuthRequirementHandler>();
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -35,11 +36,8 @@ public class Program
                 options.RequireHttpsMetadata = false;
                 options.MetadataAddress = builder.Configuration["Authentication:MetadataAddress"]!;
                 options.Audience = builder.Configuration["Authentication:Audience"];
-                options.TokenValidationParameters = new TokenValidationParameters()
-                {
-                    ValidIssuer = builder.Configuration["Authentication:ValidIssuer"],
-                    RoleClaimType = "realm_access.roles",
-                };
+                options.TokenValidationParameters = new TokenValidationParameters();
+
             });
         
         var app = builder.Build();
